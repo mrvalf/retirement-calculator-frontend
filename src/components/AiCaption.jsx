@@ -35,7 +35,7 @@ const AiCaption = (inputData) => {
             setCaption(null);
             getCaption();
         }
-    }, [inputData, acceptedAi]);
+    }, [inputData.data, acceptedAi]);
 
 
     return (

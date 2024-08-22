@@ -18,6 +18,7 @@ const MainResults = (inputData) => {
         "Traditional 401k": false,
         "Personal Investment": false,
     });
+    const [graphData, setGraphData] = useState(null);
 
     if (!inputData || inputData.result == null) {
         return <div>No data available</div>;
@@ -34,17 +35,24 @@ const MainResults = (inputData) => {
 
     const currentTrial = results.trials[index];
 
-    const getChartData = (trial) => {
-        return trial.yearsOfData.map((y) => {return{
-            "Age":y.age,
-            "Total Net Worth": parseFloat(y.accounts.totalNetWorth.toFixed(2)),
-            "Roth Ira":  parseFloat(y.accounts.rothIra.balance.toFixed(2)),
-            "Traditional Ira":  parseFloat(y.accounts.traditionalIra.balance.toFixed(2)),
-            "Roth 401k":  parseFloat(y.accounts.roth401k.balance.toFixed(2)),
-            "Traditional 401k":  parseFloat(y.accounts.traditional401k.balance.toFixed(2)),
-            "Personal Investment":  parseFloat(y.accounts.personalInvestment.balance.toFixed(2)),
-        }})
-    };
+    const needsToUpdate = graphData == null ||
+        currentTrial.yearsOfData.length !== graphData.length ||
+        parseFloat(currentTrial.yearsOfData[currentTrial.yearsOfData.length - 1].accounts.totalNetWorth.toFixed(2)) !== graphData[graphData.length - 1]["Total Net Worth"] ||
+        parseFloat(currentTrial.yearsOfData[currentTrial.yearsOfData.length - 2].accounts.totalNetWorth.toFixed(2)) !== graphData[graphData.length - 2]["Total Net Worth"];
+
+    if (needsToUpdate) {
+        setGraphData(
+            currentTrial.yearsOfData.map((y) => {return{
+                "Age":y.age,
+                "Total Net Worth": parseFloat(y.accounts.totalNetWorth.toFixed(2)),
+                "Roth Ira":  parseFloat(y.accounts.rothIra.balance.toFixed(2)),
+                "Traditional Ira":  parseFloat(y.accounts.traditionalIra.balance.toFixed(2)),
+                "Roth 401k":  parseFloat(y.accounts.roth401k.balance.toFixed(2)),
+                "Traditional 401k":  parseFloat(y.accounts.traditional401k.balance.toFixed(2)),
+                "Personal Investment":  parseFloat(y.accounts.personalInvestment.balance.toFixed(2)),
+            }})
+        );
+    }
 
     const handleLegendClick = (dataKey) => {
         setVisibleLines((prevState) => ({
@@ -55,26 +63,27 @@ const MainResults = (inputData) => {
 
     return (
         <div>
-                <div className="container">
+            <div className="container">
+                <div className="spacer30px"/>
+                <LineChart data={graphData} margin={{right: 100}} width={1200} height={500}>
                     <div className="spacer30px"/>
-                    <LineChart data={getChartData(currentTrial)} margin={{right: 100}} width={1200} height={500}>
-                        <div className="spacer30px"/>
-                        <XAxis dataKey="Age" interval={"preserveStartEnd"}/>
-                        <YAxis width={100}/>
-                        <Legend onClick={(e) => handleLegendClick(e.dataKey)}
-                                formatter={(value) => (
-                                    <span style={{ cursor: "pointer" }}>{value}</span>
-                                )}/>
-                        <Tooltip contentStyle={{backgroundColor: "#333", color: "#fff"}}/>
-                        <Line dataKey="Total Net Worth" stroke="red" activeDot={{r: 8}} hide={visibleLines["Total Net Worth"]}/>
-                        <Line dataKey="Roth Ira" stroke="lightgreen" activeDot={{r: 8}} hide={visibleLines["Roth Ira"]}/>
-                        <Line dataKey="Traditional Ira" stroke="lightblue" activeDot={{r: 8}} hide={visibleLines["Traditional Ira"]}/>
-                        <Line dataKey="Roth 401k" stroke="yellow" activeDot={{r: 8}} hide={visibleLines["Roth 401k"]}/>
-                        <Line dataKey="Traditional 401k" stroke="white" activeDot={{r: 8}} hide={visibleLines["Traditional 401k"]}/>
-                        <Line dataKey="Personal Investment" stroke="gold" activeDot={{r: 8}} hide={visibleLines["Personal Investment"]}/>
-                    </LineChart>
-                </div>
-            <AiCaption data={getChartData(currentTrial)} initalParameters={results.initialRetirementParameters}/>
+                    <XAxis dataKey="Age" interval="preserveStartEnd"/>
+                    <YAxis width={100}/>
+                    <Legend onClick={(e) => handleLegendClick(e.dataKey)}
+                            formatter={(value) => (
+                                <span style={{ cursor: "pointer" }}>{value}</span>
+                            )}/>
+                    <Tooltip contentStyle={{backgroundColor: "#333", color: "#fff"}}/>
+                    <Line dataKey="Total Net Worth" stroke="red" activeDot={{r: 8}} hide={visibleLines["Total Net Worth"]}/>
+                    <Line dataKey="Roth Ira" stroke="lightgreen" activeDot={{r: 8}} hide={visibleLines["Roth Ira"]}/>
+                    <Line dataKey="Traditional Ira" stroke="lightblue" activeDot={{r: 8}} hide={visibleLines["Traditional Ira"]}/>
+                    <Line dataKey="Roth 401k" stroke="yellow" activeDot={{r: 8}} hide={visibleLines["Roth 401k"]}/>
+                    <Line dataKey="Traditional 401k" stroke="white" activeDot={{r: 8}} hide={visibleLines["Traditional 401k"]}/>
+                    <Line dataKey="Personal Investment" stroke="gold" activeDot={{r: 8}} hide={visibleLines["Personal Investment"]}/>
+                </LineChart>
+            </div>
+
+            <AiCaption data={graphData} initalParameters={results.initialRetirementParameters}/>
         </div>
     );
 };
